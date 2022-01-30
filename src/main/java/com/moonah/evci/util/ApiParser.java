@@ -15,47 +15,48 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.moonah.evci.util.Constants.*;
 
 public class ApiParser {
+    private ApiParser() {
+    }
 
-    public static final String URL = "http://apis.data.go.kr/B552584/EvCharger/getChargerInfo";
-    public static final String SERVICE_KEY = "Ej7lakr%2BHWqzlt%2B5MLe2RivCLKvcBWFaSWjhDtpXGgWhEGuepHea76j6HYh1rj75zet%2B0XpSogcj8E9Jom1bwg%3D%3D";
-    public static final int PAGE_NO = 1;
-    public static final int NUM_OF_ROWS = 10;
-    public static final int ZCODE = 11;
+    public static ApiParser newInstance() {
+        return new ApiParser();
+    }
 
-    public static void main(String[] args) {
+    public List<XmlItem> parse(String url, Pair... pairs) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        List<XmlItem> parsed = new ArrayList<>();
 
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(getXmlFromUrl());
-            NodeList nodeList = makeNodeList(document);
 
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                NodeList child = nodeList.item(i).getChildNodes();
+            Document document = builder.parse(getXmlFromUrl(url, pairs));
+            NodeList headerNodeList = makeNodeList(document, XML_HEADER_XPATH)
+                    .item(0).getChildNodes();
+            XmlItem header = new XmlItem(headerNodeList);
 
-                for (int j = 0; j < child.getLength(); j++) {
-                    Node node = child.item(j);
-                    System.out.println("현재 노드 이름 : " + node.getNodeName());
-                    System.out.println("현재 노드 타입 : " + node.getNodeType());
-                    System.out.println("현재 노드 값 : " + node.getTextContent());
-                    System.out.println("현재 노드 네임스페이스 : " + node.getPrefix());
-                    System.out.println("현재 노드의 다음 노드 : " + node.getNextSibling());
-                    System.out.println("");
-                }
+            System.out.println(header);
+
+            NodeList itemNodeList = makeNodeList(document, XML_ITEMS_XPATH);
+
+            for (int i = 0; i < itemNodeList.getLength(); i++) {
+                NodeList childNodes = itemNodeList.item(i).getChildNodes();
+                parsed.add(new XmlItem(childNodes));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return parsed;
     }
 
-    private static InputSource getXmlFromUrl() throws IOException {
-        URL url = new URL(makeFullUrl());
-
-        System.out.println(makeFullUrl());
-
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+    private InputSource getXmlFromUrl(String url, Pair... pairs) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) (new URL(makeFullUrl(url, pairs))).openConnection();
         BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8));
 
         StringBuilder result = new StringBuilder();
@@ -65,23 +66,23 @@ public class ApiParser {
             result.append(line.trim());
         }
 
-        System.out.println(result);
-
         return new InputSource(new StringReader(result.toString()));
     }
 
-    private static String makeFullUrl() {
-        return URL +
-                "?serviceKey=" + SERVICE_KEY +
-                "&pageNo=" + PAGE_NO +
-                "&numOfRows=" + NUM_OF_ROWS +
-                "&zcode=" + ZCODE;
+    private String makeFullUrl(String url, Pair... pairs) {
+        StringBuilder sb = new StringBuilder(url + "?serviceKey=" + SERVICE_KEY);
+
+        for (Pair pair : pairs) {
+            sb.append("&").append(pair.getKey()).append("=").append(pair.getValue());
+        }
+
+        return sb.toString();
     }
 
-    private static NodeList makeNodeList(Document document) throws XPathExpressionException {
+    private NodeList makeNodeList(Document document, String path) throws XPathExpressionException {
         XPathFactory xpathFactory = XPathFactory.newInstance();
         XPath xpath = xpathFactory.newXPath();
-        XPathExpression expression = xpath.compile("//items/item");
+        XPathExpression expression = xpath.compile(path);
         return (NodeList) expression.evaluate(document, XPathConstants.NODESET);
     }
 }

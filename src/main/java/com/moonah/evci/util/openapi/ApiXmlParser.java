@@ -1,4 +1,4 @@
-package com.moonah.evci.util;
+package com.moonah.evci.util.openapi;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -18,31 +18,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.moonah.evci.util.Constants.*;
-
-public class ApiParser {
-    private ApiParser() {
+public class ApiXmlParser {
+    private ApiXmlParser() {
     }
 
-    public static ApiParser newInstance() {
-        return new ApiParser();
+    public static ApiXmlParser newInstance() {
+        return new ApiXmlParser();
     }
 
-    public List<XmlItem> parse(String url, Pair... pairs) {
+    public List<XmlItem> parse(String url, String xpath, Pair... pairs) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         List<XmlItem> parsed = new ArrayList<>();
 
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
-
             Document document = builder.parse(getXmlFromUrl(url, pairs));
-            NodeList headerNodeList = makeNodeList(document, XML_HEADER_XPATH)
-                    .item(0).getChildNodes();
-            XmlItem header = new XmlItem(headerNodeList);
-
-            System.out.println(header);
-
-            NodeList itemNodeList = makeNodeList(document, XML_ITEMS_XPATH);
+            NodeList itemNodeList = makeNodeList(document, xpath);
 
             for (int i = 0; i < itemNodeList.getLength(); i++) {
                 NodeList childNodes = itemNodeList.item(i).getChildNodes();
@@ -53,6 +44,23 @@ public class ApiParser {
         }
 
         return parsed;
+    }
+
+    public int getCount(String url, String countXpath, Pair... pairs) {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            Document document = builder.parse(getXmlFromUrl(url, pairs));
+            Node countNode = makeNodeList(document, countXpath).item(0);
+
+            return Integer.parseInt(countNode.getTextContent());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
     private InputSource getXmlFromUrl(String url, Pair... pairs) throws IOException {
@@ -70,13 +78,15 @@ public class ApiParser {
     }
 
     private String makeFullUrl(String url, Pair... pairs) {
-        StringBuilder sb = new StringBuilder(url + "?serviceKey=" + SERVICE_KEY);
+        StringBuilder sb = new StringBuilder();
 
         for (Pair pair : pairs) {
             sb.append("&").append(pair.getKey()).append("=").append(pair.getValue());
         }
 
-        return sb.toString();
+        sb.replace(0, 1, "?");
+
+        return url + sb;
     }
 
     private NodeList makeNodeList(Document document, String path) throws XPathExpressionException {

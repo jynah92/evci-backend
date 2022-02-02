@@ -1,6 +1,5 @@
-package com.moonah.evci.util.openapi;
+package com.moonah.evci.util.api;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.moonah.evci.util.openapi;
+package com.moonah.evci.util.api;
 
 public class Constants {
     /** <a href="https://www.data.go.kr/index.do">공공데이터포털 (Public Data Portal)</a> API Key */

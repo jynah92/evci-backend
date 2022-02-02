@@ -1,4 +1,4 @@
-package com.moonah.evci.util.openapi;
+package com.moonah.evci.util.api;
 
 import lombok.NoArgsConstructor;
 import org.w3c.dom.Node;

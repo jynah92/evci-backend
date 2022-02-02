@@ -1,5 +1,6 @@
-package com.moonah.evci.util.openapi;
+package com.moonah.evci.util.api;
 
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -18,14 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ApiXmlParser {
-    private ApiXmlParser() {
-    }
-
-    public static ApiXmlParser newInstance() {
-        return new ApiXmlParser();
-    }
-
     public List<XmlItem> parse(String url, String xpath, Pair... pairs) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         List<XmlItem> parsed = new ArrayList<>();

@@ -1,26 +1,34 @@
 package com.moonah.evci.application.service;
 
+import com.moonah.evci.application.dto.ServiceAreaDto;
 import com.moonah.evci.model.domain.ServiceArea;
 import com.moonah.evci.model.repository.ServiceAreaRepository;
 import com.moonah.evci.util.api.ApiXmlParser;
 import com.moonah.evci.util.api.Pair;
 import com.moonah.evci.util.api.XmlItem;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.moonah.evci.util.api.Constants.KEC_SERVICE_KEY;
 
 @Service
-@RequiredArgsConstructor
 public class ServiceAreaServiceImpl implements ServiceAreaService {
     private final ServiceAreaRepository serviceAreaRepository;
     private final ApiXmlParser apiXmlParser;
     private final ModelMapper modelMapper;
+
+    @Autowired
+    public ServiceAreaServiceImpl(ServiceAreaRepository serviceAreaRepository, ApiXmlParser apiXmlParser, ModelMapper modelMapper) {
+        this.serviceAreaRepository = serviceAreaRepository;
+        this.apiXmlParser = apiXmlParser;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public void saveServiceArea(ServiceArea restArea) {
@@ -28,23 +36,23 @@ public class ServiceAreaServiceImpl implements ServiceAreaService {
     }
 
     @Override
-    public void saveServiceAreas(List<ServiceArea> restAreaList) {
+    public void saveServiceAreas(List<ServiceAreaDto> restAreaList) {
 
     }
 
     @Override
-    public List<ServiceArea> findAllServiceAreasFromApi() {
-        int numOfRows = 10;
+    public List<ServiceAreaDto> findAllServiceAreasFromApi() {
+        int numOfRows = 50;
         int totalCount = countAllServiceAreasAtApi();
         int quotient = totalCount / numOfRows;
         int remainder = totalCount % numOfRows;
 
-        List<ServiceArea> serviceAreaList = new ArrayList<>();
+        List<ServiceAreaDto> serviceAreaList = new ArrayList<>();
 
         for (int i = 1; i <= quotient; i++) {
             List<XmlItem> parsed = apiXmlParser.parse(
                     "https://data.ex.co.kr/openapi/locationinfo/locationinfoRest",
-                    "//data/count",
+                    "//list",
                     new Pair("key", KEC_SERVICE_KEY),
                     new Pair("type", "xml"),
                     new Pair("pageNo", i),
@@ -56,7 +64,7 @@ public class ServiceAreaServiceImpl implements ServiceAreaService {
         if (remainder != 0) {
             List<XmlItem> parsed = apiXmlParser.parse(
                     "https://data.ex.co.kr/openapi/locationinfo/locationinfoRest",
-                    "//data/count",
+                    "//list",
                     new Pair("key", KEC_SERVICE_KEY),
                     new Pair("type", "xml"),
                     new Pair("numOfRows", remainder));
@@ -67,58 +75,60 @@ public class ServiceAreaServiceImpl implements ServiceAreaService {
         return serviceAreaList;
     }
 
-    private void addAllServiceAreasFromApiInList(List<ServiceArea> serviceAreaList, List<XmlItem> parsed) {
+    private void addAllServiceAreasFromApiInList(List<ServiceAreaDto> serviceAreaList, List<XmlItem> parsed) {
         for (XmlItem xmlItem : parsed) {
-            serviceAreaList.add(ServiceArea.builder()
+            ServiceAreaDto serviceAreaDto = ServiceAreaDto.builder()
                     .serviceAreaCode(xmlItem.get("serviceAreaCode"))
                     .stdRestCd(xmlItem.get("stdRestCd"))
                     .unitCode(xmlItem.get("unitCode"))
                     .unitName(xmlItem.get("unitName"))
                     .routeName(xmlItem.get("routeName"))
-                    .routeNum(xmlItem.get("routeNum"))
+                    .routeNo(xmlItem.get("routeNo"))
                     .lat(Double.parseDouble(xmlItem.get("yValue")))
                     .lng(Double.parseDouble(xmlItem.get("xValue")))
-                    .build());
+                    .build();
+
+            serviceAreaList.add(serviceAreaDto);
         }
     }
 
     @Override
-    public List<ServiceArea> findAllServiceAreas() {
+    public List<ServiceAreaDto> findAllServiceAreas() {
         return null;
     }
 
     @Override
-    public Optional<ServiceArea> findServiceAreaByServiceAreaCode(String serviceAreaCode) {
+    public Optional<ServiceAreaDto> findServiceAreaByServiceAreaCode(String serviceAreaCode) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<ServiceArea> findServiceAreaByStdRestCd(String stdRestCd) {
+    public Optional<ServiceAreaDto> findServiceAreaByStdRestCd(String stdRestCd) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<ServiceArea> findServiceAreaByUnitCode(String unitCode) {
+    public Optional<ServiceAreaDto> findServiceAreaByUnitCode(String unitCode) {
         return Optional.empty();
     }
 
     @Override
-    public List<ServiceArea> findServiceAreasByRouteName(String routeName) {
+    public List<ServiceAreaDto> findServiceAreasByRouteName(String routeName) {
         return null;
     }
 
     @Override
-    public List<ServiceArea> findServiceAreasByRouteNo(String routeNo) {
+    public List<ServiceAreaDto> findServiceAreasByRouteNo(String routeNo) {
         return null;
     }
 
     @Override
-    public List<ServiceArea> findServiceAreasByUnitName(String unitName) {
+    public List<ServiceAreaDto> findServiceAreasByUnitName(String unitName) {
         return null;
     }
 
     @Override
-    public List<ServiceArea> findServiceAreasByLocInfo(double lat, double lng, double tolerance) {
+    public List<ServiceAreaDto> findServiceAreasByLocInfo(double lat, double lng, double tolerance) {
         return null;
     }
 
@@ -137,8 +147,12 @@ public class ServiceAreaServiceImpl implements ServiceAreaService {
     }
 
     @Override
-    public void replaceAllServiceAreas(List<ServiceArea> restAreaList) {
+    public void replaceAllServiceAreasWithApi() {
+        List<ServiceAreaDto> forReplace = findAllServiceAreasFromApi();
 
+        serviceAreaRepository.replaceAllServiceAreas(forReplace.stream()
+                .map(serviceAreaDto -> modelMapper.map(serviceAreaDto, ServiceArea.class))
+                .collect(Collectors.toList()));
     }
 
     @Override

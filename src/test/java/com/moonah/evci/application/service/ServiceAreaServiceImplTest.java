@@ -4,15 +4,21 @@ import com.moonah.evci.model.domain.ServiceArea;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 class ServiceAreaServiceImplTest {
+    private final ServiceAreaService serviceAreaService;
+
     @Autowired
-    private ServiceAreaService serviceAreaService;
+    public ServiceAreaServiceImplTest(ServiceAreaService serviceAreaService) {
+        this.serviceAreaService = serviceAreaService;
+    }
 
     @Test
     @DisplayName("API로부터 모든 휴게소가 잘 가져와지는지 개수 확인")

@@ -1,5 +1,6 @@
 package com.moonah.evci.application.service;
 
+import com.moonah.evci.application.dto.ServiceAreaDto;
 import com.moonah.evci.model.domain.ServiceArea;
 
 import java.util.List;
@@ -9,26 +10,26 @@ public interface ServiceAreaService {
     // C
     void saveServiceArea(ServiceArea restArea);
 
-    void saveServiceAreas(List<ServiceArea> restAreaList);
+    void saveServiceAreas(List<ServiceAreaDto> restAreaList);
 
     // R
-    List<ServiceArea> findAllServiceAreasFromApi();
+    List<ServiceAreaDto> findAllServiceAreasFromApi();
 
-    List<ServiceArea> findAllServiceAreas();
+    List<ServiceAreaDto> findAllServiceAreas();
 
-    Optional<ServiceArea> findServiceAreaByServiceAreaCode(String serviceAreaCode);
+    Optional<ServiceAreaDto> findServiceAreaByServiceAreaCode(String serviceAreaCode);
 
-    Optional<ServiceArea> findServiceAreaByStdRestCd(String stdRestCd);
+    Optional<ServiceAreaDto> findServiceAreaByStdRestCd(String stdRestCd);
 
-    Optional<ServiceArea> findServiceAreaByUnitCode(String unitCode);
+    Optional<ServiceAreaDto> findServiceAreaByUnitCode(String unitCode);
 
-    List<ServiceArea> findServiceAreasByRouteName(String routeName);
+    List<ServiceAreaDto> findServiceAreasByRouteName(String routeName);
 
-    List<ServiceArea> findServiceAreasByRouteNo(String routeNo);
+    List<ServiceAreaDto> findServiceAreasByRouteNo(String routeNo);
 
-    List<ServiceArea> findServiceAreasByUnitName(String unitName);
+    List<ServiceAreaDto> findServiceAreasByUnitName(String unitName);
 
-    List<ServiceArea> findServiceAreasByLocInfo(double lat, double lng, double tolerance);
+    List<ServiceAreaDto> findServiceAreasByLocInfo(double lat, double lng, double tolerance);
 
     int countAllServiceAreasAtApi();
 
@@ -36,7 +37,7 @@ public interface ServiceAreaService {
 
     // U
 
-    void replaceAllServiceAreas(List<ServiceArea> restAreaList);
+    void replaceAllServiceAreasWithApi();
 
     boolean modifyServiceAreaByServiceAreaCode(String serviceAreaCode, ServiceArea serviceArea);
 
